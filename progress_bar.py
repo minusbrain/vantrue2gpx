@@ -1,3 +1,6 @@
+# Creative Common License as by https://stackexchange.com/legal
+# Code Snippet from https://stackoverflow.com/a/34325723/4184178
+# Created by Stackoverflow User Greenstick https://stackoverflow.com/users/2206251/greenstick
 def progressBar(iterable, prefix = '', suffix = '', decimals = 1, length = 100, fill = '█', printEnd = "\r"):
     """
     Call in a loop to create terminal progress bar
