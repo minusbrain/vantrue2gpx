@@ -9,6 +9,7 @@ import sqldb
 import ffmpeg
 import tempfile
 import gpxpy
+import xml.etree.ElementTree as ET
 from coord import deg2dec
 from progress_bar import progressBar
 
@@ -109,7 +110,7 @@ def vantruevid_2_db(args, relevantfiles, sqlcon):
 
         gpmd_2_sqlite(current_file_full, sqlcon, current_file)
 
-def find_distinct_trips_in_db(sqlcon):
+def find_distinct_trips_in_db(args, sqlcon):
     all_timestamps = sqldb.getSortedListOfAllTimestamps(sqlcon)
 
     start_index = 0
@@ -117,7 +118,7 @@ def find_distinct_trips_in_db(sqlcon):
     trips = []
     last_timestamp = 0
     for timestamp in all_timestamps:
-        if (timestamp - last_timestamp) > 600:
+        if (timestamp - last_timestamp) > args["trip_timeout"]:
             if curr_index != 0:
                 trips.append((all_timestamps[start_index], all_timestamps[curr_index-1]))
                 start_index = curr_index
@@ -128,8 +129,9 @@ def find_distinct_trips_in_db(sqlcon):
 
     return trips
 
-def generate_gpx_for_trip(output_folder, trip, sqlcon):
+def generate_gpx_for_trip(args, trip, sqlcon):
     trip_data = sqldb.get_trip_data(sqlcon, trip[0], trip[1])
+    speedtag = (args["gpx_version"] == '1.0')
     gpx = gpxpy.gpx.GPX()
     gpx_track = gpxpy.gpx.GPXTrack()
     gpx.tracks.append(gpx_track)
@@ -144,12 +146,19 @@ def generate_gpx_for_trip(output_folder, trip, sqlcon):
     gpx_filename = datetime.fromtimestamp(trip_data[0][0]).strftime("trip_%Y%m%d_%H%M.gpx")
 
     for trackpt in trip_data:
-        gpx_segment.points.append(gpxpy.gpx.GPXTrackPoint(time=datetime.fromtimestamp(trackpt[0]), longitude=deg2dec(trackpt[2], trackpt[3], trackpt[4]/100), latitude=deg2dec(trackpt[5], trackpt[6], trackpt[7]/100), elevation=trackpt[9], speed=trackpt[8]))
+        if speedtag:
+            gpx_point = gpxpy.gpx.GPXTrackPoint(time=datetime.fromtimestamp(trackpt[0]), longitude=deg2dec(trackpt[2], trackpt[3], trackpt[4]/100), latitude=deg2dec(trackpt[5], trackpt[6], trackpt[7]/100), elevation=trackpt[9], speed=trackpt[8])
+        else:
+            gpx_point = gpxpy.gpx.GPXTrackPoint(time=datetime.fromtimestamp(trackpt[0]), longitude=deg2dec(trackpt[2], trackpt[3], trackpt[4]/100), latitude=deg2dec(trackpt[5], trackpt[6], trackpt[7]/100), elevation=trackpt[9])
+            gpx_extension_hr = ET.fromstring(f"""<speed>{trackpt[8]}</speed>""")
+            gpx_point.extensions.append(gpx_extension_hr)
 
-    with open(os.path.join(output_folder, gpx_filename), "w") as gpx_file:
-        gpx_file.write(gpx.to_xml())
+        gpx_segment.points.append(gpx_point)
 
-def generate_gpx_for_all_trips(output_folder, trips, sqlcon):
+    with open(os.path.join(args["gpxout"], gpx_filename), "w") as gpx_file:
+        gpx_file.write(gpx.to_xml(version=args["gpx_version"]))
+
+def generate_gpx_for_all_trips(args, trips, sqlcon):
     for trip in trips: #progressBar(trips, prefix = '                Progress:', suffix = 'Complete', length = 50):
-        print ("                Processing trip from timestamp {} to {}".format(trip[0], trip[1]))
-        generate_gpx_for_trip(output_folder, trip, sqlcon)
+        print ("                Processing trip from timestamp {} to {}".format(datetime.fromtimestamp(trip[0]), datetime.fromtimestamp(trip[1])))
+        generate_gpx_for_trip(args, trip, sqlcon)
