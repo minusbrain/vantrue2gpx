@@ -92,8 +92,8 @@ def gpmd_2_sqlite(rawinput_path, sqlcon, source_filename):
 def vantruevid_2_db(args, relevantfiles, sqlcon):
     tempdatafile = os.path.join(tempfile.gettempdir(), 'vantrue_data.bin')
 
-    for current_file in progressBar(relevantfiles, prefix = '                Progress:', suffix = 'Complete', length = 50):
-        current_file_full = os.path.join(args["videoin"], current_file)
+    for current_file_full in progressBar(relevantfiles, prefix = '                Progress:', suffix = 'Complete', length = 50):
+        current_file = os.path.basename(current_file_full)
         try:
             os.remove(tempdatafile)
         except FileNotFoundError:

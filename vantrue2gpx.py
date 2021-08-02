@@ -10,8 +10,8 @@ class Vantrue2GpxArgparse:
     def __init__(self):
         self.parser=argparse.ArgumentParser(prog="vantrue2gpx", description="Parses Vantrue mp4 files into GPX tracks", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
         requiredNamed = self.parser.add_argument_group('required named arguments')
-        requiredNamed.add_argument("--videoin", "-v", default=None, type=str, help="Input folder containing all vantrue MP4 videos to parse", required=True)
-        requiredNamed.add_argument("--gpxout", "-g", default=None, type=str, help="Output folder to write resulting GPX files to", required=True)
+        requiredNamed.add_argument("--videoin", "-v", action='append', type=str, help="Input folder containing all vantrue MP4 videos to parse", required=True)
+        requiredNamed.add_argument("--gpxout", "-g", type=str, help="Output folder to write resulting GPX files to", required=True)
 
         self.parser.add_argument("--verbose", default=False, action='store_true', help="Activate verbose output")
         self.parser.add_argument("--ignore_errors", "-i", default=False, action='store_true', help="Ignore errors as long as possible")
@@ -26,6 +26,7 @@ class Vantrue2GpxArgparse:
 def main():
     parser = Vantrue2GpxArgparse()
     args = parser.parse(sys.argv[1:])
+    relevantfiles = []
 
     #tempdb = os.path.join(tempfile.gettempdir(), 'vantrue2gpx_data.db')
     tempdb = ":memory:"
@@ -35,7 +36,8 @@ def main():
         sys.exit(1)
 
     print ("== STEP 1/4  -  Identifying relevant input files")
-    relevantfiles = [ x for x in os.listdir(args["videoin"]) if x.lower().endswith(args["videofile_suffix"]) ]
+    for videoindir in args["videoin"]:
+        relevantfiles.extend([ videoindir + x for x in os.listdir(videoindir) if x.lower().endswith(args["videofile_suffix"]) ])
     print ("                Found {} relevant files to process".format(len(relevantfiles)))
 
     print ("== STEP 2/4  -  Extracting GPS Metadata and storing it in Database")
