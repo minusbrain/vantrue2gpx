@@ -9,7 +9,7 @@ This data is then exported into GPX files, where each GPX file is one trip.
 
 # Usage
 
-Make sure you checked the [Supprt](#Support) section and the [Dependencies](#Dependencies) section
+Make sure you checked the [Support](#Support) section and the [Dependencies](#Dependencies) section
 before trying to run the script.
 
 ## Make all video files available
