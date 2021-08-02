@@ -1,0 +1,4 @@
+testrun/
+__pycache__/
+
+*.pyc
