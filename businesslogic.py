@@ -166,9 +166,20 @@ def generate_gpx_for_trip(args, trip, sqlcon):
 
     for trackpt in trip_data:
         if speedtag:
-            gpx_point = gpxpy.gpx.GPXTrackPoint(time=datetime.fromtimestamp(trackpt[0]), longitude=deg2dec(trackpt[2], trackpt[3], trackpt[4]/100), latitude=deg2dec(trackpt[5], trackpt[6], trackpt[7]/100), elevation=trackpt[9], speed=trackpt[8])
+            gpx_point = gpxpy.gpx.GPXTrackPoint(
+                time=datetime.fromtimestamp(trackpt[0]),
+                longitude=deg2dec(trackpt[2], trackpt[3], trackpt[4]/100),
+                latitude=deg2dec(trackpt[5], trackpt[6], trackpt[7]/100),
+                elevation=trackpt[9],
+                speed=trackpt[8]
+            )
         else:
-            gpx_point = gpxpy.gpx.GPXTrackPoint(time=datetime.fromtimestamp(trackpt[0]), longitude=deg2dec(trackpt[2], trackpt[3], trackpt[4]/100), latitude=deg2dec(trackpt[5], trackpt[6], trackpt[7]/100), elevation=trackpt[9])
+            gpx_point = gpxpy.gpx.GPXTrackPoint(
+                time=datetime.fromtimestamp(trackpt[0]),
+                longitude=deg2dec(trackpt[2], trackpt[3], trackpt[4]/100),
+                latitude=deg2dec(trackpt[5], trackpt[6], trackpt[7]/100),
+                elevation=trackpt[9]
+            )
             gpx_extension_hr = ET.fromstring(f"""<speed>{trackpt[8]}</speed>""")
             gpx_point.extensions.append(gpx_extension_hr)
 
